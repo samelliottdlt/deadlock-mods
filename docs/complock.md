@@ -31,17 +31,22 @@ Pack Builder options (`?pack=` URL parameter, comma list; `id`, `id:choice`, `id
 | `ticklines` | gameinfo only | HP bar breakpoint lines |
 | `fov:<n>` | gameinfo only | sets `r_aspectratio`; `fov:0` = stock, CompLock default 2.15, range 1.85-2.60 |
 
-The current pack (`packs\complock`, from `CompLock-pack (1).zip`, 2026-11-21): `?pack=soundcap,particles:stock,ragdolls:off,fov:0` → HUD++, Particle Pruning (stock tracers), Sound stack cap, ragdolls on, stock FOV.
+The current pack (`packs\complock`, built by `Update-CompLock.ps1`, CompLock 2026-11-21): `?pack=soundcap,particles:stock,ragdolls:off,fov:0` → HUD++, Particle Pruning (stock tracers), Sound stack cap, ragdolls on, stock FOV. The user keeps the game's look as intact as possible: cloth, low detail map, brighter lighting, HP bars and tick lines stay off, and new options are reported rather than enabled.
 
 Each pak carries `addoninfo.txt` + `modinfo.json` (title, author, build date, written by the `deadlock-fpsmaxing` tool). The game ignores them; `Get-ModStatus.ps1` shows the title.
 
 ## Updating
 
-1. Open the link in `packs\complock\game\citadel\addons\mods.txt` (it restores your options), download the new zip.
-2. Replace `packs\complock` with the new zip's contents (or point `loadout.json` at the zip).
-3. `pwsh scripts\Deploy.ps1`. Your overlays are rebuilt against the new HUD++ and warn if a file you customized changed upstream.
+```powershell
+pwsh scripts\Update-CompLock.ps1 -Check   # what changed on the site
+pwsh scripts\Update-Mods.ps1 -Deploy      # update, reconcile overlays, audit, install
+```
 
-Re-download after every Deadlock update that changes `gameinfo.gi`, because the pack's copy is tied to a game build (see `how-mods-load.md`, matchmaking guard). `Install-Pack.ps1` warns when `PGIVersion` differs from Valve's stock file.
+`Update-CompLock.ps1` builds the pack from the Pack Builder's page data with the options in `loadout.json` (`complock.options`), byte-identical to the site's zip, downloading only changed paks. It reports changed paks, gameinfo.gi changes, the changelog since the last update, and new options (never enabled). Details: `updating.md`.
+
+Re-run after every Deadlock update that changes `gameinfo.gi`, because the pack's copy is tied to a game build (see `how-mods-load.md`, matchmaking guard). `Install-Pack.ps1` warns when `PGIVersion` differs from Valve's stock file. The site's `pack-data.game` says which build CompLock's gameinfo.gi was made for.
+
+By hand (if the site changes and the script breaks): open the link in `packs\complock\game\citadel\addons\mods.txt`, download the zip, replace `packs\complock` with its contents, `Deploy.ps1`.
 
 ## HUD++ internals (useful for customizing)
 
@@ -53,4 +58,5 @@ Decompile with `pwsh scripts\Expand-Vpk.ps1 -Vpk packs\complock\game\citadel\add
   - change a default: overlay `panorama/scripts/hudpp_settings.js` and edit `DEFAULTS`.
   - change a look: overlay the relevant `.css` and edit the rule.
 - Settings are edited in an in-game menu (`hudpp_menu.js`, added to the Esc menu) and **persisted through a hidden HTML panel** that loads `https://deadlockconfig.com/docs/hudpp-store/store.html` and stores them in that page's `localStorage` (`hudpp_store.js`). Panorama itself has no file storage for mods.
+- The menu panel is built in `hudpp_menu.js` → `build()`: a head (`HudppHead`: "COMPLOCK", authors, close), tabs, bodies, and a foot (`HudppFoot`: save status, reset). The `complock-updated-on` overlay adds its "Updated On" label to the foot, with a tooltip through the menu's own `tip()` helper (`UIShowTextTooltip`).
 - The compiled HUD++ files reuse compile metadata (RED2) from other files. That is how CompLock's tool builds them without Valve's compiler, and it confirms the game doesn't check that metadata. This repo's compiler does the same (`resource-formats.md`).

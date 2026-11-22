@@ -15,7 +15,8 @@ Two earlier Copilot sessions customized mods by hand, before this repo existed. 
 
 - **Mod shape:** `panorama/scripts/buffs_log.vjs_c` + `panorama/styles/buffs_log.vcss_c`; the script reparents its root panel into the HUD.
 - **Fix:** moved it (`const pos = {x, y}` defaults in JS, `#BuffsLogRoot { position: ... }` in CSS), narrowed it to fit left of the scoreboard (x 1.5 %, y 43 %, width 15.6 %), and added `z-index: -1` so item tooltips draw over it. Styles stay attached after reparenting, so CSS z-index works.
-- Done as same-length in-place byte edits with CRC/MD5 fixups. With `Build-Overlay.ps1`, edits can now change file length freely.
+- Done as same-length in-place byte edits with CRC/MD5 fixups (`sinners_statues_tracker_left_v3_dir.vpk`, kept by Grimoire in `addons\.disabled\`).
+- **Now the `sinners-statues-tracker` overlay** (`-Full` build of GameBanana 692472, by Xaohs, downloaded automatically). It reproduces v3 (x 0.5 %, y 43 %, z-index -1, width 15.6 %, compact stat cells; layout byte-identical, CSS equal ignoring whitespace, JS equal plus one addition) and restores the soul-pickup "+" (`GoldPlusPrefix`) that the mod's outdated copy of `hud_event_indicator.xml` drops; the audit found it (`updating.md`). The `Effectiveness` label still uses the mod's older text.
 
 ## Takeaways
 

@@ -51,7 +51,7 @@ Valve's limits:
 |---|---|
 | `addons\pakNN_dir.vpk` | kept |
 | `gameinfo.gi` | **reset to stock**, so mods stop loading |
-| Panorama mods (HUD) | may **crash or break** if Valve changed the files they replace (`FATAL ERROR: Unable to find child '...' in layout file '...'`). Remove the HUD pak, wait for a mod update, or re-merge your overlay |
+| Panorama mods (HUD) | may **crash or break** if Valve changed the files they replace (`FATAL ERROR: Unable to find child '...' in layout file '...'`). `Update-Mods.ps1` lists the vanilla files Valve changed under the mods and the panel ids mod layouts lack (`updating.md`). Remove the HUD pak, wait for a mod update, or re-merge your overlay |
 
 ## Where things live
 

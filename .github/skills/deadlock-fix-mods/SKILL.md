@@ -9,14 +9,16 @@ Start with facts, not guesses:
 
 ```powershell
 pwsh scripts\Get-ModStatus.ps1
-pwsh scripts\Find-ModConflicts.ps1
+pwsh scripts\Find-ModConflicts.ps1 -Loadout -Vanilla   # conflicts, vanilla files Valve changed since the last Deploy, panel ids mod layouts lack
 ```
 
 | Symptom | Likely cause | Fix |
 |---|---|---|
 | No mods apply | Update/Verify reset `gameinfo.gi` (status: "citadel/addons is NOT a search path") | `pwsh scripts\Deploy.ps1` |
 | A mod doesn't apply | Wrong file name (status lists "Ignored by the game"), or another pak with a lower number replaces the same file | Rename via Deploy (it renumbers), reorder in `loadout.json` |
-| Crash at launch: `Unable to find child 'X' in layout file 'Y'` | A HUD mod (or overlay) replaces a layout Valve changed | Remove the HUD pak (`Restore-Backup` / edit loadout), wait for a mod update, or re-merge the overlay against the new vanilla file |
+| Crash at launch: `Unable to find child 'X' in layout file 'Y'` | A HUD mod (or overlay) replaces a layout Valve changed (the audit lists it under VALVE CHANGED / missing panel ids) | Remove the HUD pak (`Restore-Backup` / edit loadout), `Update-Mods.ps1` for a mod update, or recreate the panel from the mod's JS |
+| Overlay build stops with merge conflicts | The base mod updated a part we changed | `deadlock-customize-mods` skill: resolve the markers in `mods\<name>\src`, rebuild |
+| Vanilla UI detail missing only with mods (e.g. a label) | A mod's layout copy is older than the game's | Audit: missing panel ids; restore from JS (see the tracker's `GoldPlusPrefix` fix) |
 | Crash: `Unable to read default keybinding configuration` | `Mod citadel` / `Write citadel` missing from SearchPaths | Re-deploy a pack whose gameinfo has them |
 | "Unable to enter matchmaking ... unsupported changes to ... gameinfo.gi" | Guarded sections (Engine2, MaterialSystem2, NetworkSystem, Particles, RenderSystem, SceneSystem, WorldRenderer) differ from stock / stale pack for this build, or `-tools` launch option | Get a fresh CompLock pack for the current build, Deploy; or `Remove-Mods.ps1` to confirm; remove `-tools` |
 | HUD element/menu missing after update | Mod relies on a panel ID/API Valve changed | `-condebug`, read `game\citadel\console.log`; compare the vanilla file's history in GameTracking-Deadlock |

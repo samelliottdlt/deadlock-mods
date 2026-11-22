@@ -1,20 +1,21 @@
 ---
 name: deadlock-customize-mods
-description: Customize or fix Deadlock UI mods (HUD++/CompLock, GameBanana Panorama mods) or the vanilla HUD by editing their Panorama CSS/JS and building an overlay VPK. Use when the user wants to move, resize, recolor, hide or change behavior of a HUD element, change a mod's defaults, or fix a broken Panorama mod.
+description: Customize or fix Deadlock UI mods (HUD++/CompLock, GameBanana Panorama mods) or the vanilla HUD by editing their Panorama CSS/JS and building an overlay VPK. Use when the user wants to move, resize, recolor, hide or change behavior of a HUD element, change a mod's defaults, fix a broken Panorama mod, or resolve an overlay merge conflict after a mod update.
 ---
 
 # Customizing Deadlock mods (overlays)
 
-Read `docs/panorama.md` (Panorama XML/CSS/JS, API, gotchas) before editing; `docs/resource-formats.md` explains why CSS/JS can be rebuilt but layouts can't. Prior worked examples: `docs/case-studies.md`.
+Read `docs/panorama.md` (Panorama XML/CSS/JS, API, gotchas) before editing; `docs/resource-formats.md` explains why CSS/JS can be rebuilt but layouts can't; `docs/updating.md` covers how overlays are stored and merged. Worked examples: `docs/case-studies.md`, `mods\complock-updated-on`, `mods\sinners-statues-tracker`.
 
 ## Model
 
 An **overlay** is `mods\<name>\`:
-- `mod.json`: `{ "base": "<vpk path relative to repo | absolute | game>", "description": "..." }`
-- `src\panorama\...`: full copies of the decompiled files you changed (or new files)
-- `base-hashes.json`: hash of each base file when copied (detects upstream changes)
+- `mod.json` (tracked): `base` (VPK path relative to repo | absolute | `game`), `files`, `build` (`changed` | `full`), `description`, `title`, optional `source` (`{ "gamebanana": <id> }`), `credits`, `stamp`, `runtimeIds`, `release`
+- `changes.patch` (tracked): our edits as a diff from `base\` to `src\`
+- `base-hashes.json` (tracked): which base version the patch was made against
+- `base\`, `src\` (gitignored): the mod's files and your working copy. Third-party files never go into git.
 
-`Build-Overlay.ps1` compiles only the changed/new files into `build\<name>.vpk`; `Deploy.ps1` loads overlays ahead of the pack, so their files win. The base mod stays untouched.
+`Build-Overlay.ps1` recreates `src\` from the patch on a fresh clone, 3-way merges your edits when the base mod changed, rewrites `changes.patch`, and compiles `build\<name>.vpk` (only your files, or with `build: full` the whole base VPK). `Deploy.ps1` loads overlays ahead of the pack, so their files win.
 
 ## Workflow
 
@@ -26,26 +27,30 @@ An **overlay** is `mods\<name>\`:
 2. **Scaffold the overlay** with the files to change (compiled or source names both work):
    ```powershell
    pwsh scripts\New-Overlay.ps1 -Name hudpp-tweaks -Base packs\complock\game\citadel\addons\pak01_dir.vpk -File panorama/styles/hudpp_menu.css,panorama/scripts/hudpp_settings.js
+   pwsh scripts\New-Overlay.ps1 -Name some-mod-fix -GameBanana 692472 -Full -File panorama/scripts/x.js   # a GameBanana mod, shipped as a fixed copy
    ```
-   Then add `"hudpp-tweaks"` to `overlays` in `loadout.json` (order = priority).
-3. **Edit** `mods\<name>\src\...`:
+   Then add the name to `overlays` in `loadout.json` (order = priority).
+3. **Edit** `mods\<name>\src\...` (LF line endings):
    - CSS: edit the existing rule rather than appending a duplicate; or add a more specific selector.
-   - JS: ES5 style; guard panels with `IsValid()`; log with `$.Msg('[name] ...')`.
+   - JS: ES5 style in HUD++ (the tracker uses ES6 `const`, which works); guard panels with `IsValid()`; wrap new code in `try {}`; log with `$.Msg('[name] ...')`. Mark our additions with a `// deadlock-mods:` comment.
    - HUD++ options: change `DEFAULTS` in `hudpp_settings.js` (see `docs/complock.md`).
-   - **Layouts (.xml) can't be rebuilt.** Make the change from JS at runtime (find panels, create panels, toggle classes) in a script the layout already includes, or use resourcecompiler from CSDK 12 and drop the resulting `.vxml_c` into `src\`.
+   - **Layouts (.xml) can't be rebuilt.** Make the change from JS at runtime (find panels, `$.CreatePanel`, toggle classes, `style.*`) in a script the layout already includes. If you recreate vanilla panel ids from JS, list them in `runtimeIds` so the audit knows.
    - Never rename/remove existing panel `id`s (native code looks them up → crash on load).
+   - Build-time values: with `"stamp": true`, `{{DLM_UPDATED_ON}}`, `{{DLM_COMPLOCK_DATE}}`, `{{DLM_DETAILS}}` in JS/CSS are replaced (JS-string escaped).
 4. **Build and inspect:**
    ```powershell
    pwsh scripts\Build-Overlay.ps1 -Name hudpp-tweaks
    tools\s2v\Source2Viewer-CLI.exe -i build\hudpp-tweaks.vpk -l
+   git diff mods\hudpp-tweaks\changes.patch
    ```
+   When reproducing an existing hand-made mod, decompile both and compare (`git diff --no-index`), ignoring whitespace.
 5. **Install:** user closes Deadlock → `pwsh scripts\Deploy.ps1`. Suggest launch option `-condebug` and ask the user to verify in-game; read `game\citadel\console.log` for `[name]` lines or errors.
-6. **Commit** the overlay (`mods\<name>` + `loadout.json`) with a message describing the visual change.
+6. **Commit** `mods\<name>\{mod.json,changes.patch,base-hashes.json}` + `loadout.json` with a message describing the visual change.
 
-## After the base mod updates
+## After the base mod updates (reconcile)
 
-`Build-Overlay.ps1` warns when a file you replaced changed upstream. Expand the new base, diff the new upstream file against your copy (`git diff --no-index`), port your edits onto the new version, then `Build-Overlay.ps1 -Name <name> -AcceptBase`.
+`Build-Overlay.ps1` (also run by `Update-Mods.ps1` and `Deploy.ps1`) prints `UPSTREAM CHANGED, merged cleanly: <file>` or stops with `N conflict(s) in mods\<name>\src\<file>`. For conflicts: open the file, find `<<<<<<< ours` / `=======` / `>>>>>>> new base`, keep upstream's new code and re-apply our intent (the `// deadlock-mods:` comments and `changes.patch` history in git show what ours was), remove the markers, build again, and tell the user what upstream changed. Then re-verify in game.
 
 ## Fixing a broken mod (not just restyling)
 
-Same workflow with the broken mod's VPK as `-Base`. Typical causes: a Deadlock update renamed panels/IDs the mod looks up (compare with GameTracking-Deadlock history), or an API Valve removed (`javascript:` URLs, `AsyncWebRequest`). Check `console.log` first.
+Same workflow with the broken mod's VPK as base (`-Full` if you ship the whole fixed mod). Typical causes: a Deadlock update renamed panels/IDs the mod looks up (`Find-ModConflicts.ps1 -Loadout -Vanilla` lists vanilla ids missing from mod layouts; compare with GameTracking-Deadlock history), or an API Valve removed (`javascript:` URLs, `AsyncWebRequest`). Check `console.log` first.
