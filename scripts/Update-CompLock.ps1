@@ -11,6 +11,8 @@
   (it writes ConVars while off, like "ragdolls") is added to your options as "<id>:off".
   The previous pack is kept in packs\.previous\. Nothing in the game folder changes: run Deploy.ps1
   (or Update-Mods.ps1, which also reconciles overlays) afterwards.
+  loadout.json -> complock.gameinfo ({ "<convar>": "<value>" | null }) overrides CompLock's ConVar lines
+  in the generated gameinfo.gi (null comments CompLock's line out); listed in mods.txt like the options' lines.
 .PARAMETER Options
   Change the selection (and save it in loadout.json), e.g. -Options "soundcap,particles:stock,ragdolls:off,fov:0".
 .PARAMETER Check
@@ -76,6 +78,17 @@ foreach ($x in @($D.base) + @($D.option) | Where-Object { $_.choice }) { $kc[$x.
 $encoded = ConvertTo-CompLockSelection $D $dec.Sel
 $shareUrl = Get-CompLockShareUrl $D $dec.Sel
 $res = Resolve-CompLockPack $D $dec.Sel
+# Our own ConVar overrides (loadout.json -> complock.gameinfo): a value sets the line, null comments out CompLock's.
+$overrides = if ($clCfg -and $clCfg['gameinfo']) { $clCfg['gameinfo'] } else { [ordered]@{} }
+foreach ($k in $overrides.Keys) {
+    $v = $overrides[$k]
+    if ($null -eq $v) {
+        $was = $res.Lines[$k]
+        if ($null -eq $was -and $D.gameinfo -match ('(?m)^\s*"' + [regex]::Escape($k) + '"\s+"([^"\r\n]*)"')) { $was = $Matches[1] }
+        $res.Lines.Remove($k); $res.Off[$k] = $was ?? ''
+    }
+    else { $res.Lines[$k] = "$v"; $res.Off.Remove($k) }
+}
 $gameinfo = New-CompLockGameInfo $D.gameinfo $res.Lines $res.Off
 $modsTxt = New-CompLockModsTxt $res $shareUrl
 $updatedOn = ($res.Components | ForEach-Object { $_.updated } | Where-Object { $_ } | Sort-Object | Select-Object -Last 1)
@@ -111,6 +124,7 @@ $optsChanged = $old -and $old['options'] -ne $encoded
 "CompLock selection: $(if ($encoded) { $encoded } else { 'none' })"
 "  " + (($res.Paks | ForEach-Object { "pak{0:d2} {1}" -f $_.Num, $_.Title }) -join ' | ')
 "  Pack Builder link: $shareUrl"
+if ($overrides.Count) { "  gameinfo.gi overrides (loadout.json complock.gameinfo): " + (($overrides.Keys | ForEach-Object { if ($null -eq $overrides[$_]) { "$_ commented out" } else { "$_ = $($overrides[$_])" } }) -join ', ') }
 "CompLock newest change: $updatedOn$(if ($old -and $old['updatedOn']) { "   (installed pack: $($old['updatedOn']))" })"
 $build = try { Get-GameBuild } catch { $null }
 if ($D.game -and $build -and $D.game -ne $build) { "  CompLock's gameinfo.gi is from game build $($D.game); this install is build $build (Deploy warns if the protected sections differ)." }
@@ -147,6 +161,7 @@ if ($changes -or $Force -or -not $old) {
         paks = @(foreach ($name in $want.Keys) { $w = $want[$name]; [ordered]@{ name = $name; file = $w.Pak.File; title = $w.Pak.Title; crc = [uint32]$w.Part.crc; size = $w.Part.size } })
         knownOptions = $siteOptions
         knownChoices = $kc
+        gameinfoOverrides = $overrides
     }
     Write-JsonFile (Join-Path $new 'complock.json') $manifest
     if (Test-Path $packDir) {
@@ -166,6 +181,7 @@ if ($changes -or $Force -or -not $old) {
 }
 
 $newCfg = [ordered]@{ options = $encoded; knownOptions = $siteOptions; knownChoices = $kc }
+if ($clCfg -and $clCfg.Contains('gameinfo')) { $newCfg['gameinfo'] = $clCfg['gameinfo'] }
 if (-not $clCfg -or ($clCfg | ConvertTo-Json -Depth 5 -Compress) -ne ($newCfg | ConvertTo-Json -Depth 5 -Compress)) {
     $cfg['complock'] = $newCfg
     Write-JsonFile $Loadout $cfg
