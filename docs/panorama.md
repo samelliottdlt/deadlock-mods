@@ -16,7 +16,7 @@ Panorama is Valve's HTML-like UI framework: **XML layouts + CSS styles + JavaScr
 
 ### Reading vanilla sources
 
-- **[SteamTracking/GameTracking-Deadlock](https://github.com/SteamTracking/GameTracking-Deadlock)** has every vanilla layout/style decompiled at `game/citadel/pak01_dir/panorama/{layout,styles,scripts}`, updated each build. Commit messages list the changed files, so you can see what an update broke. A local clone is at `C:\Users\netwo\Code\GameTracking-Deadlock`; `git pull` it first, because it may be many builds old.
+- **[SteamTracking/GameTracking-Deadlock](https://github.com/SteamTracking/GameTracking-Deadlock)** has every vanilla layout/style decompiled at `game/citadel/pak01_dir/panorama/{layout,styles,scripts}`, updated each build. Commit messages list the changed files, so you can see what an update broke. Clone it next to this repo (`..\GameTracking-Deadlock`); `git pull` it first, because it may be many builds old.
 - Or extract from your install: `pwsh scripts\Expand-Vpk.ps1 -Game -Filter panorama/layout/hud.vxml_c,panorama/styles/hud.vcss_c -Out work\vanilla`.
 - Search inside VPKs: `tools\s2v\Source2Viewer-CLI.exe -i <vpk> --vpk_search "HudppHud" -f panorama/`.
 

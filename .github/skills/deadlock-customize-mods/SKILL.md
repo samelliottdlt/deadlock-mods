@@ -22,7 +22,7 @@ An **overlay** is `mods\<name>\`:
    ```powershell
    pwsh scripts\Expand-Vpk.ps1 -Vpk packs\complock\game\citadel\addons\pak01_dir.vpk -Out work\hudpp -Force
    ```
-   Use grep on `work\hudpp\src`. For vanilla UI, search the GameTracking-Deadlock clone (`C:\Users\netwo\Code\GameTracking-Deadlock\game\citadel\pak01_dir\panorama`, `git pull` first; it's read-only for agents) or `Expand-Vpk.ps1 -Game -Filter <path>`. Ask the user for a screenshot if it's unclear which element they mean.
+   Use grep on `work\hudpp\src`. For vanilla UI, search the GameTracking-Deadlock clone (`..\GameTracking-Deadlock\game\citadel\pak01_dir\panorama` if cloned next to this repo, `git pull` first; it's read-only for agents) or `Expand-Vpk.ps1 -Game -Filter <path>`. Ask the user for a screenshot if it's unclear which element they mean.
 2. **Scaffold the overlay** with the files to change (compiled or source names both work):
    ```powershell
    pwsh scripts\New-Overlay.ps1 -Name hudpp-tweaks -Base packs\complock\game\citadel\addons\pak01_dir.vpk -File panorama/styles/hudpp_menu.css,panorama/scripts/hudpp_settings.js

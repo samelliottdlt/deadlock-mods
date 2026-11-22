@@ -9,4 +9,4 @@ Ground rules:
 - Third-party mod binaries (`packs\`, `mods-bin\`, `build\`, `tools\`, `backups\`) are gitignored; don't commit them.
 - The game install is found via the Steam registry/library folders; set `$env:DEADLOCK_PATH` to point the scripts at a copy for testing.
 - Verify script changes against a copied game folder (`$env:DEADLOCK_PATH`) before touching the real install, and verify mod changes in-game with the user (`-condebug`, `game\citadel\console.log`).
-- `C:\Users\netwo\Code\GameTracking-Deadlock` is a read-only reference (decompiled vanilla Panorama); don't modify it.
+- A sibling clone `..\GameTracking-Deadlock`, if present, is a read-only reference (decompiled vanilla Panorama); don't modify it.
