@@ -32,8 +32,7 @@
       ]
     },
     "gameinfo": {
-      "citadel_damage_text_batching_window_individual": null,
-      "citadel_boss_glow_disabled": null
+      "citadel_damage_text_batching_window_individual": null
     }
   }
 }
