@@ -4,3 +4,8 @@ mods-bin/
 build/
 backups/
 work/
+state/
+dist/
+# overlay working copies (third-party files); git tracks mod.json + changes.patch
+mods/*/base/
+mods/*/src/
