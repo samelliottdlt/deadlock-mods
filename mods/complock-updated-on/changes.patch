@@ -1,0 +1,21 @@
+diff --git a/base/panorama/scripts/hudpp_menu.js b/src/panorama/scripts/hudpp_menu.js
+index 4fa21bb..3864cba 100644
+--- a/base/panorama/scripts/hudpp_menu.js
++++ b/src/panorama/scripts/hudpp_menu.js
+@@ -798,6 +798,16 @@ var HudppMenuToggle;
+     ["TL", "TR", "BL", "BR"].forEach(function (c) { quiet(make("Panel", frame, "", "HudppXhCorner HudppXhCorner" + c)); });
+ 
+     var foot = make("Panel", panel, "", "HudppFoot");
++    // deadlock-mods: when this install last changed, stamped by Build-Overlay.ps1; hover for what's in it
++    var updated = label(foot, "", "Updated On: {{DLM_UPDATED_ON}}");
++    try {
++      updated.style.fontSize = "11px";
++      updated.style.color = "#FFEFD766";
++      updated.style.verticalAlign = "center";
++      updated.style.marginRight = "12px";
++    } catch (e) {}
++    updated.hittest = true;
++    tip(updated, function () { return "{{DLM_DETAILS}}"; });
+     status = label(foot, "HudppStatus", "");
+     status.hittest = true;
+     tip(status, function () { return statusMore; });

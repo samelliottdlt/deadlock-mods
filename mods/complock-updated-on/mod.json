@@ -1,0 +1,10 @@
+{
+  "description": "Adds a small \"Updated On <date>\" footnote to the CompLock (HUD++) menu; hover it for what is installed. The date is stamped at build time.",
+  "base": "packs/complock/game/citadel/addons/pak01_dir.vpk",
+  "build": "changed",
+  "files": [
+    "panorama/scripts/hudpp_menu.js"
+  ],
+  "stamp": true,
+  "title": "CompLock menu: Updated On footnote"
+}

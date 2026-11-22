@@ -1,0 +1,126 @@
+diff --git a/base/panorama/scripts/buffs_log.js b/src/panorama/scripts/buffs_log.js
+index 2f8ee35..a35a194 100644
+--- a/base/panorama/scripts/buffs_log.js
++++ b/src/panorama/scripts/buffs_log.js
+@@ -448,7 +448,7 @@
+ 
+   // Both axes have to be written in one `position` declaration, so the last
+   // value of each is held here rather than read back off the panel.
+-  const pos = { x: 28.5, y: 80.5 };
++  const pos = { x: 0.5, y: 43 };
+ 
+   function applyPosition() {
+     if (!UI.panel || !UI.panel.IsValid()) return;
+@@ -542,12 +542,12 @@
+     { type: "group", label: "Position" },
+     {
+       id: "pos_x", type: "slider", label: "Horizontal Position",
+-      min: 0, max: 90, step: 0.5, default: 28.5, unit: "%",
++      min: 0, max: 90, step: 0.5, default: 0.5, unit: "%",
+       description: "Distance from the left edge of the screen"
+     },
+     {
+       id: "pos_y", type: "slider", label: "Vertical Position",
+-      min: 0, max: 95, step: 0.5, default: 80.5, unit: "%",
++      min: 0, max: 95, step: 0.5, default: 43, unit: "%",
+       description: "Distance from the top edge of the screen"
+     }
+   ];
+@@ -589,12 +589,28 @@
+     ummAnnounce();
+   }
+ 
++  // deadlock-mods: this mod ships its own copy of hud_event_indicator.xml, made before Valve added
++  // the "+" label in front of soul pickups (GoldPlusPrefix; HUD++/vanilla CSS shows it for .gold).
++  // Every indicator runs this script, so each one puts the label back where vanilla has it.
++  function restoreGoldPrefix(ctx) {
++    try {
++      if (ctx.FindChildTraverse("GoldPlusPrefix")) return;
++      const image = ctx.FindChildTraverse("Image");
++      const box = image && image.GetParent();
++      if (!box) return;
++      const plus = $.CreatePanel("Label", box, "GoldPlusPrefix");
++      plus.AddClass("HudIndicatorText");
++      plus.text = $.Localize("#HUD_event_indicator_gold_pickup_plus");
++    } catch (e) {}
++  }
++
+   function boot() {
+     UI.ctx = $.GetContextPanel();
+     if (!UI.ctx || !UI.ctx.IsValid || !UI.ctx.IsValid()) {
+       $.Schedule(BOOT_RETRY_SEC, boot);
+       return;
+     }
++    restoreGoldPrefix(UI.ctx);
+ 
+     UI.root = findRoot(UI.ctx);
+     if (!UI.root || !UI.root.FindChildTraverse) {
+diff --git a/base/panorama/styles/buffs_log.css b/src/panorama/styles/buffs_log.css
+index 51bcd26..eaf5792 100644
+--- a/base/panorama/styles/buffs_log.css
++++ b/src/panorama/styles/buffs_log.css
+@@ -2,8 +2,10 @@
+ 
+ #BuffsLogRoot
+ {
+-	position: 28.555% 80.556% 0px;
+-	width: 17.448%;
++	/* deadlock-mods: left of the open scoreboard, clear of the ability bar; under item tooltips */
++	position: 0.5% 43% 0px;
++	z-index: -1;
++	width: 15.6%;
+ 	height: fit-children;
+ 	flow-children: down;
+ 	visibility: collapse;
+@@ -67,7 +69,7 @@
+ .SummaryVal
+ {
+ 	vertical-align: center;
+-	margin-right: 12px;
++	margin-right: 8px;
+ 	font-size: 13px;
+ 	font-weight: bold;
+ 	color: #e8edf5;
+@@ -117,7 +119,7 @@
+ 
+ .StatCell.Left
+ {
+-	margin-right: 12px;
++	margin-right: 8px;
+ }
+ 
+ .StatCell.Zero
+@@ -127,10 +129,10 @@
+ 
+ .StatIcon
+ {
+-	width: 14px;
+-	height: 14px;
++	width: 13px;
++	height: 13px;
+ 	vertical-align: center;
+-	margin-right: 5px;
++	margin-right: 4px;
+ 	background-size: contain;
+ 	background-repeat: no-repeat;
+ 	background-position: center;
+@@ -140,7 +142,7 @@
+ {
+ 	width: fill-parent-flow(1.0);
+ 	vertical-align: center;
+-	font-size: 13px;
++	font-size: 12px;
+ 	color: #c2ccda;
+ 	white-space: nowrap;
+ 	text-overflow: ellipsis;
+@@ -150,8 +152,8 @@
+ .StatValue
+ {
+ 	vertical-align: center;
+-	margin-left: 4px;
+-	font-size: 13px;
++	margin-left: 3px;
++	font-size: 12px;
+ 	font-weight: bold;
+ 	color: #e8edf5;
+ 	white-space: nowrap;

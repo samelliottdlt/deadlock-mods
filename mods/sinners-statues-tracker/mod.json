@@ -1,0 +1,24 @@
+{
+  "description": "Sinners and Statues Tracker, moved left of the scoreboard so it no longer covers the abilities; restores the soul-pickup \"+\" its old layout dropped.",
+  "base": "mods-bin/sinners-statues-tracker.vpk",
+  "build": "full",
+  "files": [
+    "panorama/scripts/buffs_log.js",
+    "panorama/styles/buffs_log.css"
+  ],
+  "source": {
+    "gamebanana": 692472
+  },
+  "credits": [
+    {
+      "name": "Sinners and Statues Tracker",
+      "by": "Xaohs",
+      "url": "https://gamebanana.com/mods/692472",
+      "license": "This work is licensed under a Creative Commons Attribution-NonCommercial-NoDerivs 4.0 Unported License."
+    }
+  ],
+  "runtimeIds": [
+    "GoldPlusPrefix"
+  ],
+  "title": "Sinners and Statues Tracker by Xaohs (moved left)"
+}

@@ -1,6 +1,33 @@
 {
   "pack": "packs/complock",
-  "overlays": [],
+  "overlays": [
+    "complock-updated-on",
+    "sinners-statues-tracker"
+  ],
   "extra": [],
-  "keepSearchPaths": []
+  "keepSearchPaths": [],
+  "complock": {
+    "options": "soundcap,particles:stock,ragdolls:off,fov:0",
+    "knownOptions": [
+      "soundcap",
+      "particles",
+      "lowdetailmap",
+      "brighterlighting",
+      "cloth",
+      "ragdolls",
+      "hpbars",
+      "ticklines"
+    ],
+    "knownChoices": {
+      "hud": [
+        "vanilla",
+        "cumulative",
+        "hidden"
+      ],
+      "particles": [
+        "stock",
+        "reduced"
+      ]
+    }
+  }
 }
