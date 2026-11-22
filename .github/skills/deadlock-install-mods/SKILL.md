@@ -16,6 +16,8 @@ All commands run from the repo root with PowerShell 7 (`pwsh`). Background: `doc
 - **Never turn on a new CompLock option yourself.** The user keeps the game's look as intact as possible; report new options (Update-CompLock lists them) and let the user choose.
 - First time on a machine: `pwsh scripts\Setup-Tools.ps1` (downloads Source2Viewer-CLI into `tools\`).
 
+`.\mods <command>` (`mods.cmd` → `scripts\Mods.ps1`) wraps the scripts below for the common jobs: `status`, `list`, `check`, `update`, `install`, `complock` (plain CompLock, no overlays/extras), `remove`, `undo`, `add`, `enable`, `disable`, `options`; `.\mods help` for all.
+
 ## Look first
 
 ```powershell

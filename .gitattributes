@@ -1,2 +1,5 @@
 # overlay patches must keep LF so git apply matches the LF working copies
 *.patch text eol=lf
+
+# cmd.exe needs CRLF
+*.cmd text eol=crlf

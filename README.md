@@ -13,6 +13,24 @@ pwsh scripts\Update-Mods.ps1 -Deploy  # update, reconcile overlays, audit, insta
 pwsh scripts\Get-ModStatus.ps1        # what's installed, is gameinfo.gi healthy
 ```
 
+Or use the `mods` command (`mods.cmd` in the repo root; `.\mods help` lists everything):
+
+```powershell
+.\mods status            # what's installed
+.\mods list              # what loadout.json installs, overlays you could enable
+.\mods check             # updates available
+.\mods update            # update everything and install
+.\mods install           # install the full loadout
+.\mods complock          # plain CompLock only (your options, no overlays or extra VPKs)
+.\mods remove            # remove all mods (vanilla Deadlock)
+.\mods undo              # restore the latest backup
+.\mods add <gamebanana id|url|.vpk>    # add an extra VPK to loadout.json (then .\mods install)
+.\mods enable|disable <name>           # turn an overlay or extra on/off in loadout.json
+.\mods options "<?pack= value>"        # change the CompLock options
+```
+
+Commands that change the game take `-WhatIf`. `complock` keeps the `complock.gameinfo` overrides, since they are built into `packs\complock`.
+
 On a fresh clone `Deploy.ps1` downloads everything it needs (the CompLock pack with the options in `loadout.json`, GameBanana bases of overlays). After a Deadlock update, run `Deploy.ps1` again; updates reset `gameinfo.gi`.
 
 In game, Esc → the CompLock menu shows **Updated On: &lt;date&gt;** at the bottom: the date the installed set last changed. Hover it for what's installed.
@@ -52,6 +70,7 @@ docs\                 how it all works
 
 | Script | Does |
 |---|---|
+| `Mods.ps1` | The `mods` CLI (`mods.cmd`): one front end for the scripts below |
 | `Update-Mods.ps1` | Update CompLock + GameBanana mods, reconcile overlays, audit; `-Check` reports only, `-Deploy` installs |
 | `Update-CompLock.ps1` | Build/update `packs\complock` from deadlockconfig.com with your options; reports changes and new options (never enables them) |
 | `Deploy.ps1` | Build overlays from `loadout.json` and install everything; saves the audit baseline |
