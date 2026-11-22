@@ -10,12 +10,14 @@ Read `docs/panorama.md` (Panorama XML/CSS/JS, API, gotchas) before editing; `doc
 ## Model
 
 An **overlay** is `mods\<name>\`:
-- `mod.json` (tracked): `base` (VPK path relative to repo | absolute | `game`), `files`, `build` (`changed` | `full`), `description`, `title`, optional `source` (`{ "gamebanana": <id> }`), `credits`, `stamp`, `runtimeIds`, `release`
+- `mod.json` (tracked): `base` (VPK path relative to repo | absolute | `game`), `files`, `build` (`changed` | `full` | `restore`), `description`, `title`, optional `source` (`{ "gamebanana": <id> }`), `credits`, `stamp`, `runtimeIds`, `release`
 - `changes.patch` (tracked): our edits as a diff from `base\` to `src\`
 - `base-hashes.json` (tracked): which base version the patch was made against
 - `base\`, `src\` (gitignored): the mod's files and your working copy. Third-party files never go into git.
 
 `Build-Overlay.ps1` recreates `src\` from the patch on a fresh clone, 3-way merges your edits when the base mod changed, rewrites `changes.patch`, and compiles `build\<name>.vpk` (only your files, or with `build: full` the whole base VPK). `Deploy.ps1` loads overlays ahead of the pack, so their files win.
+
+**Bringing back something a pack strips** (an effect Particle Pruning removed, any non-Panorama file): a `"build": "restore"` overlay copies compiled files unchanged from its base, e.g. `mods\vanilla-particles` (`"base": "game"`, wildcard paths). Edit its `mod.json` `files`; no `src\`/patch. How to find the stripped file: `docs/complock.md` → Particle Pruning.
 
 ## Workflow
 

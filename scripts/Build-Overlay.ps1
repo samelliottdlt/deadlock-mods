@@ -14,6 +14,8 @@
      "build": "full" in mod.json the whole base VPK with your files replacing its own.
   JS/CSS files can contain {{DLM_UPDATED_ON}}, {{DLM_COMPLOCK_DATE}} and {{DLM_DETAILS}} when mod.json
   has "stamp": true; they are replaced by the loadout's version date and contents at build time.
+  With "build": "restore" none of the above happens: the listed compiled paths (wildcards allowed) are
+  copied unchanged from the base VPK, e.g. "base": "game" to bring back vanilla files another pak replaces.
 .EXAMPLE
   pwsh scripts\Build-Overlay.ps1 -Name hudpp-tweaks
 #>
@@ -23,6 +25,20 @@ Import-Module (Join-Path $PSScriptRoot 'DeadlockMods.psm1') -Force
 $o = Get-Overlay $Name
 Initialize-OverlayBaseVpk $o
 if (-not $o.Files) { throw "mods\$Name\mod.json lists no files." }
+if ($o.Restore) {
+    # Unchanged copies of base files (e.g. vanilla files another pak replaces), taken fresh on every build.
+    $paths = @(Resolve-OverlayRestoreFiles $o)
+    if (-not $paths) { throw "mods\$Name\mod.json: no file matches in $($o.BaseVpk)." }
+    $tmp = Join-Path ([IO.Path]::GetTempPath()) ("dlovl_" + [guid]::NewGuid())
+    try {
+        Invoke-S2V -i $o.BaseVpk -f ($paths -join ',') -o "$tmp\" -q | Out-Null
+        $got = @(Get-ChildItem -Recurse -File $tmp -ErrorAction SilentlyContinue).Count
+        if ($got -ne $paths.Count) { throw "Extracted $got of $($paths.Count) files from $($o.BaseVpk)." }
+        $out = New-OverlayVpk $o $tmp
+        "Built $out ($($paths.Count) files restored from $(if ($o.Meta['base'] -eq 'game') { 'the game' } else { $o.BaseVpk }))"
+    } finally { Remove-Item -Recurse -Force $tmp -ErrorAction SilentlyContinue }
+    return
+}
 $listing = Get-VpkListing $o.BaseVpk
 $inBase = @{}
 foreach ($f in $o.Files) { $inBase[$f] = $listing.ContainsKey((ConvertTo-CompiledPath $f)) }
@@ -139,15 +155,7 @@ try {
         }
     }
     if (-not (Get-ChildItem -Recurse -File $stage)) { throw 'Nothing to pack.' }
-    if (-not (Test-Path (Join-Path $stage 'addoninfo.txt'))) {
-        # A title for Get-ModStatus.ps1 (the game ignores this file).
-        $title = ($o.Meta['title'] ?? $Name).Replace('"', "'")
-        Write-Text (Join-Path $stage 'addoninfo.txt') "`"AddonInfo`"`n{`n`taddontitle `"$title`"`n`taddonauthor `"deadlock-mods overlay`"`n}`n"
-    }
-    $out = Join-Path (Get-RepoRoot) "build\$Name.vpk"
-    New-Item -ItemType Directory -Force (Split-Path $out) | Out-Null
-    Remove-Item $out -ErrorAction SilentlyContinue
-    Invoke-S2V -i $stage --vpk_create $out -q | Out-Null
+    $out = New-OverlayVpk $o $stage
     "Built $out ($((Get-ChildItem -Recurse -File $stage).Count) files$(if ($o.Full) { ', full copy of the base' }))"
 } finally {
     Remove-Item -Recurse -Force $tmp -ErrorAction SilentlyContinue

@@ -396,7 +396,35 @@ function Get-Overlay([string]$Name) {
         BaseDir = Join-Path $dir 'base'; SrcDir = Join-Path $dir 'src'
         Files = @($meta['files'] | Where-Object { $_ })
         Full = $meta['build'] -eq 'full'
+        Restore = $meta['build'] -eq 'restore'
     }
+}
+
+function Resolve-OverlayRestoreFiles($Overlay) {
+    <# Compiled paths in the base VPK matching a "restore" overlay's files (wildcards allowed). #>
+    $listing = Get-VpkListing $Overlay.BaseVpk
+    $out = [Collections.Generic.List[string]]::new()
+    foreach ($pattern in $Overlay.Files) {
+        $hit = @($listing.Keys | Where-Object { $_ -like $pattern.Replace('\', '/') } | Sort-Object)
+        if (-not $hit) { Write-Warning "$($Overlay.Name): '$pattern' matches nothing in $($Overlay.BaseVpk)" }
+        foreach ($h in $hit) { if (-not $out.Contains($h)) { $out.Add($h) } }
+    }
+    $out
+}
+
+function New-OverlayVpk($Overlay, [string]$Stage) {
+    <# Packs a staged overlay into build\<name>.vpk (adds an addoninfo.txt title). Returns the path. #>
+    if (-not (Get-ChildItem -Recurse -File $Stage -ErrorAction SilentlyContinue)) { throw 'Nothing to pack.' }
+    if (-not (Test-Path (Join-Path $Stage 'addoninfo.txt'))) {
+        # A title for Get-ModStatus.ps1 (the game ignores this file).
+        $title = ($Overlay.Meta['title'] ?? $Overlay.Name).Replace('"', "'")
+        Write-Text (Join-Path $Stage 'addoninfo.txt') "`"AddonInfo`"`n{`n`taddontitle `"$title`"`n`taddonauthor `"deadlock-mods overlay`"`n}`n"
+    }
+    $out = Join-Path $script:RepoRoot "build\$($Overlay.Name).vpk"
+    New-Item -ItemType Directory -Force (Split-Path $out) | Out-Null
+    Remove-Item $out -ErrorAction SilentlyContinue
+    Invoke-S2V -i $Stage --vpk_create $out -q | Out-Null
+    $out
 }
 
 function Save-OverlayMeta($Overlay) { Write-JsonFile $Overlay.MetaPath $Overlay.Meta }

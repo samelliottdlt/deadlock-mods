@@ -40,7 +40,7 @@ docs\                 how it all works
 {
   "pack": "packs/complock",
   "complock": { "options": "soundcap,particles:stock,ragdolls:off,fov:0" },
-  "overlays": ["complock-updated-on", "sinners-statues-tracker"],
+  "overlays": ["complock-updated-on", "hudpp-damage-numbers", "vanilla-particles", "sinners-statues-tracker"],
   "extra": [],
   "keepSearchPaths": []
 }
@@ -80,6 +80,8 @@ pwsh scripts\Deploy.ps1
 
 Overlays in this repo:
 - `complock-updated-on`: "Updated On: &lt;date&gt;" footnote in the CompLock menu (date stamped at build time).
+- `hudpp-damage-numbers`: per-hit gun and spirit damage numbers in their vanilla colors, from the first hit (HUD++ hid them and showed only a white running total, which Valve starts at the second hit).
+- `vanilla-particles`: vanilla copies of effects Particle Pruning strips that show game state: the open-shop effect and Celeste's Light Eater aura (visible on structures too). Copied from the installed game at build time (`"build": "restore"`).
 - `sinners-statues-tracker`: the Sinners and Statues Tracker moved left of the open scoreboard, under item tooltips, with compact rows; also restores the "+" in front of soul pickups that the tracker's outdated layout drops.
 
 ## Sharing with friends

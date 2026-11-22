@@ -31,7 +31,7 @@ pwsh scripts\Restore-Backup.ps1                    # list backups
 {
   "pack": "packs/complock",                                        // built by Update-CompLock.ps1
   "complock": { "options": "soundcap,particles:stock,ragdolls:off,fov:0" },  // ?pack= value of a Pack Builder link
-  "overlays": ["complock-updated-on", "sinners-statues-tracker"],  // mods\<name>, built and loaded first (they win)
+  "overlays": ["complock-updated-on", "hudpp-damage-numbers", "vanilla-particles", "sinners-statues-tracker"],  // mods\<name>, built and loaded first (they win)
   "extra": ["mods-bin/radio.vpk"],                                 // other standalone VPKs, loaded after the pack
   "keepSearchPaths": []                                            // extra "Game <path>" lines to keep in gameinfo.gi
 }

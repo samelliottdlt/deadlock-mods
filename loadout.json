@@ -2,6 +2,8 @@
   "pack": "packs/complock",
   "overlays": [
     "complock-updated-on",
+    "hudpp-damage-numbers",
+    "vanilla-particles",
     "sinners-statues-tracker"
   ],
   "extra": [],

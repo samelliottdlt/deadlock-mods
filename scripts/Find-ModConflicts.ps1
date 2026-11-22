@@ -34,7 +34,7 @@ if ($Vpk) {
         $o = Get-Overlay $n
         $built = Join-Path (Get-RepoRoot) "build\$n.vpk"
         if (-not (Test-Path $built)) { throw "build\$n.vpk is missing; run Build-Overlay.ps1 -Name $n (or Deploy.ps1 -WhatIf)." }
-        $paks.Add([pscustomobject]@{ Name = "overlay $n"; Path = $built; BaseOf = $(if ($o.Full) { $null } else { $o.BaseVpk }); RuntimeIds = @($o.Meta['runtimeIds'] | Where-Object { $_ }) })
+        $paks.Add([pscustomobject]@{ Name = "overlay $n"; Path = $built; BaseOf = $(if ($o.Full) { $null } else { $o.BaseVpk }); RuntimeIds = @($o.Meta['runtimeIds'] | Where-Object { $_ }); Restores = $o.Restore })
     }
     if ($cfg['pack']) {
         $pc = Get-PackCitadel (Resolve-RepoPath $cfg['pack'])
@@ -57,13 +57,20 @@ foreach ($p in $paks) {
     }
 }
 $expected = [Collections.Generic.List[string]]::new()
+$restored = [ordered]@{}
 $conflicts = [Collections.Generic.List[string]]::new()
 foreach ($c in $owners.GetEnumerator() | Where-Object { $_.Value.Count -gt 1 } | Sort-Object Name) {
     $win = $c.Value[0]; $rest = $c.Value | Select-Object -Skip 1
     $line = "{0}`n    wins: {1}   shadowed: {2}" -f $c.Name, $win.Name, (($rest | ForEach-Object Name) -join ', ')
-    if ($win.BaseOf -and @($rest).Count -eq 1 -and $rest[0].Path -eq $win.BaseOf) { $expected.Add($c.Name) } else { $conflicts.Add($line) }
+    if ($win.Restores) { $key = "$($win.Name) over $(($rest | ForEach-Object Name) -join ', ')"; $restored[$key] = 1 + [int]$restored[$key] }
+    elseif ($win.BaseOf -and @($rest).Count -eq 1 -and $rest[0].Path -eq $win.BaseOf) { $expected.Add($c.Name) } else { $conflicts.Add($line) }
 }
 if ($expected) { "Overlay files replacing their base (expected): $($expected -join ', ')" }
+foreach ($k in $restored.Keys) { "Restored (expected): $k, $($restored[$k]) file(s)" }
+foreach ($p in $paks | Where-Object Restores) {
+    $idle = @($lists[$p.Path].Keys | Where-Object { $_ -notin 'addoninfo.txt', 'modinfo.json' -and $owners[$_].Count -eq 1 })
+    if ($idle) { "$($p.Name): $($idle.Count) restored file(s) no other pak replaces any more (can be dropped from mod.json): $($idle -join ', ')" }
+}
 if ($conflicts) { "CONFLICTS (only the winner's copy is used):"; $conflicts; "$($conflicts.Count) conflicting files." } else { 'No conflicts between paks.' }
 
 if (-not $Vanilla -and -not $SaveBaseline) { return }
@@ -78,7 +85,7 @@ if ($baseline) { "Vanilla check: game build $build; baseline from build $($basel
 else { "Vanilla check: game build $build; no baseline yet (saved by the next Deploy)" }
 
 $replaced = [ordered]@{}   # path -> winning pak
-foreach ($path in $owners.Keys | Sort-Object) { if ($vanillaList.ContainsKey($path)) { $replaced[$path] = $owners[$path][0] } }
+foreach ($path in $owners.Keys | Sort-Object) { if ($vanillaList.ContainsKey($path) -and -not $owners[$path][0].Restores) { $replaced[$path] = $owners[$path][0] } }
 foreach ($g in $replaced.GetEnumerator() | Group-Object { $_.Value.Name }) { "  $($g.Name) replaces $($g.Count) vanilla files" }
 
 $changed = @(if ($baseline) { foreach ($path in $replaced.Keys) { $was = $baseline['crc'][$path]; if ($was -and $was -ne $vanillaList[$path]) { $path } } })

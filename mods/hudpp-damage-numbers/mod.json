@@ -1,0 +1,8 @@
+{
+  "description": "HUD++ damage numbers back to per-hit gun and spirit numbers in their vanilla colors, shown from the first hit: HUD++ hid them and kept only the white running total (Valve's cumulative mode 1). Sets Valve's damage text mode to off (individual numbers only).",
+  "base": "packs/complock/game/citadel/addons/pak01_dir.vpk",
+  "build": "changed",
+  "files": [
+    "panorama/scripts/hudpp_hud.js"
+  ]
+}

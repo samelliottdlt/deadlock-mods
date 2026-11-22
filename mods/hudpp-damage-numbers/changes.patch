@@ -1,0 +1,16 @@
+diff --git a/base/panorama/scripts/hudpp_hud.js b/src/panorama/scripts/hudpp_hud.js
+index ce487dd..b305774 100644
+--- a/base/panorama/scripts/hudpp_hud.js
++++ b/src/panorama/scripts/hudpp_hud.js
+@@ -4,7 +4,10 @@
+   var root = $.GetContextPanel();
+   var S = HudppSettings;
+   var X = typeof HudppCrosshair === "undefined" ? null : HudppCrosshair;
+-  $.DispatchEvent("CitadelConCommand", "citadel_damage_text_cumulative_mode " + S.damageMode);
++  // deadlock-mods: per-hit gun/spirit numbers instead of HUD++'s white running total only (it skips single hits).
++  $.DispatchEvent("CitadelConCommand", "citadel_damage_text_cumulative_mode 0");
++  var dmgHud = S.hud(root);
++  if (dmgHud) dmgHud.RemoveClass("HudppDmg");
+   var cur = S.session(root);
+   if (cur) S.apply(root, cur);
+   if (X) X.duration(cur || S.normalize(null));

@@ -57,6 +57,7 @@ if ($Full) {
     $meta['build'] = 'full'
 }
 New-Item -ItemType Directory -Force $dir | Out-Null
+if ($meta['build'] -eq 'restore') { throw "mods\$Name is a ""restore"" overlay: list the compiled paths (wildcards allowed) in its mod.json ""files"", then run Build-Overlay.ps1." }
 Write-JsonFile $metaPath $meta
 $o = Get-Overlay $Name
 if ((Test-Path $o.Patch) -and (Get-Item $o.Patch).Length -and -not (Test-Path $o.SrcDir)) {

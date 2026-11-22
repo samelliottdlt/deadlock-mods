@@ -1,0 +1,14 @@
+{
+  "title": "Vanilla particles kept from Particle Pruning",
+  "description": "Brings back vanilla particles CompLock's Particle Pruning strips that show game state: the shop-open effect in front of the shop and the aura on targets (structures too) hit by Celeste's Light Eater. Copied from the game at build time.",
+  "base": "game",
+  "build": "restore",
+  "files": [
+    "particles/environment/shop_open_ambient*.vpcf_c",
+    "particles/environment/shop_sign_magic.vpcf_c",
+    "particles/environment/winter/winter_shop_open_ambient*.vpcf_c",
+    "particles/abilities/unicorn/unicorn_radiant_blast_debuff.vpcf_c",
+    "particles/abilities/unicorn/unicorn_radiant_blast_debuff_glow.vpcf_c",
+    "particles/abilities/unicorn/unicorn_radiant_blast_debuff_spark.vpcf_c"
+  ]
+}
